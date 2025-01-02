@@ -38,23 +38,22 @@ def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, water
     bbmin = mesh.vertices.min(0)
     bbmax = mesh.vertices.max(0)
     center = (bbmin + bbmax) * 0.5
-    mesh.vertices -= center  # center
+    mesh.vertices -= center  # center 将整体平移，然后让center为原点
     mesh_orin = mesh.copy()
     if watertight_process:
         if mesh.is_watertight:
             pass
-        else:
-            pitch = mesh.extents.max() / 128  # size
-            if pitch < 0.002:
+        else:#处理mesh为不闭合的情况
+            pitch = mesh.extents.max() / 128  # size extent方法是提取物体的尺寸维度，计算重建分辨率
+            if pitch < 0.002: #限制最小的体素大小
                 pitch = 0.002
             use_binvox = False
-            if mesh.faces.shape[0] > 100:
-                use_binvox = True
+            if mesh.faces.shape[0] > 100: #判断obj文件面的个数
                 # change it to binvox method for better and speed up
-                vox = mesh.voxelized(pitch, 'binvox')
+                vox = mesh.voxelized(pitch,) #将mesh模型体素化 这里binvox环境有点问题，暂时没法使用
             else:
-                vox = mesh.voxelized(pitch)
-            vox.fill()
+                vox = mesh.voxelized(pitch) #将mesh模型体素化
+            vox.fill()#填充网格空隙
             bounds = vox.bounds
 
             mesh = vox.marching_cubes
@@ -78,14 +77,16 @@ def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, water
     sizeof_voxel = vox_size
     # Downsample a point cloud on a voxel grid so there is at most one point per voxel.
     # Any arguments after the points are treated as attribute arrays and get averaged within each voxel
+    #对点云进行两次采样，使结果更加平滑？
     v_sampled = pcu.downsample_point_cloud_on_voxel_grid(sizeof_voxel, v)
     v_sampled = pcu.downsample_point_cloud_on_voxel_grid(sizeof_voxel, v_sampled)
-
+    #为什么要进行这个再次筛选采样的过程，解释是进行两次采样后会点云位置偏离的问题
     kdtree = KDTree(data=v)
     dist, index = kdtree.query(v_sampled, k=1)
     v_sampled = v[index]
     n_sampled = n[index]
 
+    #进行可视化
     if vis:
         print('points shape is :', v_sampled.shape)
         import open3d as o3d
@@ -95,7 +96,7 @@ def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, water
         o3d_mesh = mesh.as_open3d
         o3d_mesh.compute_vertex_normals()
         o3d.visualization.draw_geometries([o3d_pc, o3d_mesh])
-
+    #是否存储
     write_ply = True
     if write_ply:
         import open3d as o3d
@@ -112,7 +113,7 @@ def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, water
                      'mesh': mesh.copy(),  # scaled mesh
                      'scale': scale,
                      }
-    return object_params
+    return object_params, mesh.vertices.astype(np.float32)
 
 
 def create_table_points(lx, ly, lz, dx=0, dy=0, dz=0, grid_size=0.01):
