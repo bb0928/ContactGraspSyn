@@ -17,7 +17,7 @@ if __name__ == "__main__":
     CUR_DIR = os.path.dirname(os.path.abspath(__file__))
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    hand_name = 'leap_hand'
+    hand_name = 'shadow_hand'
 
     opt_args = edict({'batch_size_each': 10, 'distance_lower': 0.05, 'distance_upper': 0.15,
                       'jitter_strength': 0.1, "theta_lower": -np.pi/6, 'theta_upper': np.pi/6})
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         grasp_real = hand_opt.best_grasp_configuration(save_real=True)
         # np.save('./test_data/grasp_npy/{}.npy'.format(obj_name), grasp_real)
         vis_grasp = True
-        if vis_grasp:
+        if vis_grasp: # True
             # init grasp
             pose = torch.eye(4).reshape(1, 4, 4).repeat(opt_args.batch_size_each, 1, 1).to(device).float()
             theta = hand_opt.init_joint_angles.reshape(-1, hand_opt.hand_layer.n_dofs)
@@ -66,5 +66,6 @@ if __name__ == "__main__":
                 pc = trimesh.PointCloud(verts[idx].squeeze().cpu().numpy(), colors=(0, 255, 255))
                 pc_anchor = trimesh.PointCloud(anchors[idx].squeeze().cpu().numpy(), colors=(255, 0, 0))
                 pc_init = trimesh.PointCloud(verts_init[idx].squeeze().cpu().numpy(), colors=(255, 0, 255))
-                scene = trimesh.Scene([pc, pc_anchor, pc_init, object_params['mesh']])
+                #scene = trimesh.Scene([pc, pc_anchor, pc_init, object_params['mesh']])
+                scene = trimesh.Scene([pc_anchor, pc_init, object_params['mesh']])
                 scene.show()

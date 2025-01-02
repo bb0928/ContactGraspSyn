@@ -238,14 +238,16 @@ class IsaacValidator:
 if __name__ == "__main__":
     import numpy as np
     import pytorch_kinematics as pk
-    urdf_path = "/home/v-wewei/repository/dex-urdf/robots/hands/leap_hand/leap_hand_right_no_base_transform.urdf"
+    urdf_path = "/home/user/DexGraspSyn/hand_layers/leap_hand_layer/assets/leap_hand_right.urdf"
     chain = pk.build_chain_from_urdf(open(urdf_path).read())
     joint_names = chain.get_joint_parameter_names()
-    grasp = np.load('../test_data/grasp_npy/tmpfvthwtwg.npy', allow_pickle=True).item()
+    # grasp = np.load('../test_data/grasp_npy/tmpfvthwtwg.npy', allow_pickle=True).item()
 
     validator = IsaacValidator(mode='direct', joint_names=joint_names, sim_step=120)
-    validator.create_envs(hand_rotation=grasp['wrist_quat'], hand_translation=grasp['wrist_tsl'],
-                          hand_qpos=grasp['joint_angles'], obj_scale=1.0, target_qpos=grasp['joint_angles'])
+    # validator.create_envs(hand_rotation=grasp['wrist_quat'], hand_translation=grasp['wrist_tsl'],
+    #                       hand_qpos=grasp['joint_angles'], obj_scale=1.0, target_qpos=grasp['joint_angles'])
+    validator.create_envs(hand_rotation=np.zeros(4), hand_translation=np.zeros(3),
+                          hand_qpos=np.zeros(22), obj_scale=1.0, target_qpos=np.zeros(22))
     joint_angles = validator.run_sim()
     difference = np.abs(grasp['joint_angles'] - joint_angles)
     idx = np.argmax(difference)

@@ -354,7 +354,7 @@ class HandOptimizer(nn.Module):
         if self.use_quat:
             quat = F.normalize(self.wrist_rot)
             pose[:, :3, :3] = roma.unitquat_to_rotmat(quat)
-        else:
+        else:   # 执行这个
             pose[:, :3, :3] = robust_compute_rotation_matrix_from_ortho6d(self.wrist_rot)
 
         pose[:, :3, 3] = self.wrist_tsl
@@ -367,7 +367,7 @@ class HandOptimizer(nn.Module):
 
         pred = {'vertices': pred_vertices, 'normals': pred_normals}
 
-        loss_collision_obstacle = 0
+        loss_collision_obstacle = 0 # 初始化障碍物碰撞损失
         if obstacle is not None:
             _, h2o_signed, _, _, _, _ = point2point_signed(
                 pred['vertices'], obstacle['points'].repeat(self.bs, 1, 1), pred['normals'],
@@ -377,13 +377,13 @@ class HandOptimizer(nn.Module):
             loss_collision_obstacle = torch.sum(h2o_signed * h2o_dist_neg, dim=1) * -20
         # torch.cuda.synchronize()
         # time_start = time.time()
-        # hand object collision
+        # hand object collision #######################################################计算手部物体碰撞损失
         o2h_signed, h2o_signed, _, obj_near_idx, o2h_vec, h2o_vec = point2point_signed(
             pred['vertices'], self.object_params['points'].repeat(self.bs, 1, 1),
             pred['normals'], self.object_params['normals'].repeat(self.bs, 1, 1),
         )
 
-        o2h_dist_neg = torch.logical_and(o2h_signed.abs() < 0.005, o2h_signed < 0.0)
+        o2h_dist_neg = torch.logical_and(o2h_signed.abs() < 0.005, o2h_signed < 0.0) # 计算手部与物体之间距离小于阈值且为负数的距离
         h2o_dist_neg = torch.logical_and(h2o_signed.abs() < 0.005, h2o_signed < 0.0)
 
         loss_collision_h2o = torch.sum(h2o_signed * h2o_dist_neg, dim=1)
@@ -394,7 +394,7 @@ class HandOptimizer(nn.Module):
         # torch.cuda.synchronize()
         # time_cost = time.time() - time_start
         # print('time cost', time_cost)
-        # hand self collision
+        # hand self collision #######################################################
         if self.hand_name == 'parallel_hand':  # there is no self collision with parallel jaw gripper
             hand_self_collision = 0
         else:
@@ -404,8 +404,8 @@ class HandOptimizer(nn.Module):
         #     loss_close = self.compute_close_distance(hand_anchors, h2o_signed)
         # else:
         #     loss_close = 0
-
-        obj_near_idx = obj_near_idx[:, self.hand_anchor_layer.vert_idx][:, self.contact_idx]
+        # contact align loss #######################################################
+        obj_near_idx = obj_near_idx[:, self.hand_anchor_layer.vert_idx][:, self.contact_idx] # contact_idx为什么是39个
         contact_vec = F.normalize(self.object_params['points'].squeeze()[obj_near_idx] - hand_anchors[:, self.contact_idx], dim=-1)
         contact_obj_vec = -self.object_params['normals'].squeeze()[obj_near_idx]
 
@@ -417,7 +417,7 @@ class HandOptimizer(nn.Module):
         contact_align_loss = (1 - out_1).sum(-1) * self.contact_align_weight / 2
         contact_align_loss += (1 - out_2).sum(-1) * self.contact_align_weight / 2
 
-        # E_fc: force Closure ( Note: force closure loss do not play much help in our case !!! not recommend in most case )
+        # E_fc: force Closure ( Note: force closure loss do not play much help in our case !!! not recommend in most case ) #############################3
         if self.apply_fc:
             weights = torch.ones(len(self.contact_idx)).expand(self.bs, -1)
             select_contact_idx = torch.multinomial(weights, num_samples=self.n_contact, replacement=False).to(self.device)
@@ -480,6 +480,22 @@ class HandOptimizer(nn.Module):
         return pred_vertices
 
     def best_grasp_configuration(self, save_real=False):
+        """
+        Get the best grasp configuration.
+
+        This function calculates the best hand grasp configuration based on previously computed optimal wrist rotation,
+        translation, and joint angles. It converts the rotation representation to quaternion format and calculates the
+        translation vector. Depending on whether it's for real-world saving, it will convert the hand pose to the
+        corresponding frame. Finally, it returns a dictionary containing grasp information.
+
+        Parameters:
+        save_real (bool): Flag indicating whether to save data for real-world use. If True, the hand pose is converted
+                        to the world frame; if False, it remains in the current frame. Default is False.
+
+        Returns:
+        dict: A dictionary containing the best grasp configuration, including wrist quaternion, wrist translation,
+            joint angles, object scale, and object file path.
+        """
         # get best hand parameters
         assert self.best_wrist_rot is not None
         assert self.best_wrist_tsl is not None
