@@ -147,7 +147,37 @@ def initialize_grasp_space(hand_model, object_mesh_list, args,):
                    'wrist_quat': roma.rotmat_to_unitquat(rotation),  # [x, y, z, w]
                    'parallel_contact_point': None  # use for mapping from parallel jaw gripper to multi-finger hand
                    }
-    return hand_params
+    
+    # added by xlj 2025.1.6 22:41
+    # rotation_ours = np.array([[ 0.62133892, -0.69700171, -0.35794771,  0.53305972], # 台式机ycb数据集的演示,直接从sapien2dexgraspsyn来的
+    #                         [-0.20043909,  0.30024199, -0.93256577,  0.58028269],
+    #                         [ 0.75747087,  0.65118612,  0.04684564,  0.09678855],
+    #                         [ 0.        ,  0.        ,  0.        ,  1.        ]])
+    rotation_ours = np.array([[ 0.39031744, -0.90631472, -0.16200595, -0.07728193],
+                                [-0.41863371, -0.01798752, -0.90797702, -0.48931804],   # 原来是0.48
+                                [ 0.81999885,  0.42222042, -0.38643474,  1.066522  ],
+                                [ 0.        ,  0.        ,  0.        ,  1.        ]])
+    R_y = np.array([[0, 0, 1],
+    [0, 1, 0],
+    [-1, 0, 0]])
+    # R_y = torch.from_numpy(R_y).float().to(device)
+    # R_y_batch = R_y.unsqueeze(0).expand(rotation_ours.shape[0], -1, -1)  # 扩展到与 pose 相同的批量大小
+    rotation_ours[:3, :3] = rotation_ours[:3, :3] @ R_y # 如果用笔记本grab数据集也需要乘以这个ry
+
+    rotation_ours = torch.tensor(rotation_ours, dtype=torch.float, device=device)
+    # qpos_ours = np.load('/home/user/dex-retargeting/example/position_retargeting/qpos/qpos_20.npy') # 台式机ycb数据集
+    qpos_ours = np.load('/home/user/Documents/xwechat_files/wxid_vwjnkgi57uwv22_6ca8/msg/file/2025-01/qpos_242.npy')    # 笔记本grab数据集
+    qpos_ours = torch.tensor(qpos_ours, dtype=torch.float, device=device) 
+    theta_ours = qpos_ours[6:]
+    #print(theta_ours.shape)
+    # theta_ours = torch.zeros(22).to(device) # 仅做测试
+    hand_params_ours = {'joint_angles': theta_ours.unsqueeze(0), 'wrist_tsl': rotation_ours[:3, 3].T.unsqueeze(0),
+                   'wrist_rot6d': rotation_ours[:3,:3].unsqueeze(0).transpose(1,2)[:, :2].reshape(-1, 6),
+                   'wrist_quat': roma.rotmat_to_unitquat(rotation_ours[:3,:3].unsqueeze(0)),  # [x, y, z, w]
+                   'parallel_contact_point': None  # use for mapping from parallel jaw gripper to multi-finger hand
+                   }
+    #return hand_params
+    return hand_params_ours
 
 
 if __name__ == "__main__":

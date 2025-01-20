@@ -1,0 +1,615 @@
+<?xml version="1.0" ?>
+<robot name="converted_robot">
+   <link name="palm">
+      <inertial>
+         <origin xyz="0.006 0.0 0.036" rpy="0.1678471312422165 0.04641103986884443 1.5420568046006367"/>
+         <mass value="0.3"/>
+         <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="palm">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/palm.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_palm0">
+         <origin xyz="0.011 0 0.038" rpy="0 0 0"/>
+         <geometry>
+            <box size="0.064 0.0222 0.098"/>
+         </geometry>
+      </collision>
+      <collision name="C_palm1">
+         <origin xyz="-0.032 0 0.014" rpy="0 0 0"/>
+         <geometry>
+            <box size="0.022 0.0222 0.050"/>
+         </geometry>
+      </collision>
+   </link>
+   <link name="ffknuckle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="2.0477583421747254 0.011366961427066169 0.007130225047531802"/>
+         <mass value="0.008"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="knuckle">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/knuckle.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+   </link>
+   <joint type="revolute" name="FFJ3">
+      <parent link="palm"/>
+      <child link="ffknuckle"/>
+      <origin xyz="0.033 0.0 0.095" rpy="0.0 0.0 0.0"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-0.349" upper="0.349" effort="100" velocity="100"/>
+   </joint>
+   <link name="ffproximal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.023" rpy="0.0 0.01131529652408414 1.5707963267948966"/>
+         <mass value="0.014"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F3">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F3.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_ffproximal">
+         <origin xyz="0 0 0.0225" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.01" length="0.045"/>
+         </geometry>
+      </collision>
+   </link>
+   <joint type="revolute" name="FFJ2">
+      <parent link="ffknuckle"/>
+      <child link="ffproximal"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="ffmiddle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.011" rpy="0.0 0.0 1.5707963267948963"/>
+         <mass value="0.012"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F2">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F2.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_ffmiddle">
+         <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00805" length="0.025"/>
+         </geometry>
+      </collision>
+   </link>
+   <joint type="revolute" name="FFJ1">
+      <parent link="ffproximal"/>
+      <child link="ffmiddle"/>
+      <origin xyz="0.0 0.0 0.045" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   <link name="ffdistal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.015" rpy="0.0 0.008486512007798819 1.5707963267948966"/>
+         <mass value="0.01"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F1">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F1.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_ffdistal">
+         <origin xyz="0 0 0.012" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00705" length="0.024"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="FFJ0">
+      <parent link="ffmiddle"/>
+      <child link="ffdistal"/>
+      <origin xyz="0.0 0.0 0.025" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+
+   <link name="mfknuckle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="2.0477583421747254 0.011366961427066169 0.007130225047531802"/>
+         <mass value="0.008"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="knuckle">
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/knuckle.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+   </link>
+   
+   <joint type="revolute" name="MFJ3">
+      <parent link="palm"/>
+      <child link="mfknuckle"/>
+      <origin xyz="0.011 0.0 0.099" rpy="0.0 0.0 0.0"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-0.349" upper="0.349" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="mfproximal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.023" rpy="0.0 0.01131529652408414 1.5707963267948966"/>
+         <mass value="0.014"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F3">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F3.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_mfproximal">
+         <origin xyz="0 0 0.0225" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.01" length="0.045"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="MFJ2">
+      <parent link="mfknuckle"/>
+      <child link="mfproximal"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="mfmiddle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.012" rpy="0.0 0.0 1.5707963267948963"/>
+         <mass value="0.012"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F2">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F2.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_mfmiddle">
+         <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00805" length="0.025"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="MFJ1">
+      <parent link="mfproximal"/>
+      <child link="mfmiddle"/>
+      <origin xyz="0.0 0.0 0.045" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="mfdistal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.015" rpy="0.0 0.008486512007798819 1.5707963267948966"/>
+         <mass value="0.01"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F1">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F1.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_mfdistal">
+         <origin xyz="0 0 0.012" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00705" length="0.024"/>
+         </geometry>
+      </collision>
+   </link>
+
+   <joint type="revolute" name="MFJ0">
+      <parent link="mfmiddle"/>
+      <child link="mfdistal"/>
+      <origin xyz="0.0 0.0 0.025" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="rfknuckle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="2.0477583421747254 0.011366961427066169 0.007130225047531802"/>
+         <mass value="0.008"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="knuckle">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/knuckle.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+   </link>
+   
+   <joint type="revolute" name="RFJ3">
+      <parent link="palm"/>
+      <child link="rfknuckle"/>
+      <origin xyz="-0.011 0.0 0.095" rpy="0.0 0.0 0.0"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-0.349" upper="0.349" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="rfproximal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.023" rpy="0.0 0.01131529652408414 1.5707963267948966"/>
+         <mass value="0.014"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F3">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F3.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_rfproximal">
+         <origin xyz="0 0 0.0225" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.01" length="0.045"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="RFJ2">
+      <parent link="rfknuckle"/>
+      <child link="rfproximal"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="rfmiddle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.012" rpy="0.0 0.0 1.5707963267948963"/>
+         <mass value="0.012"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F2">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F2.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_rfmiddle">
+         <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00805" length="0.025"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="RFJ1">
+      <parent link="rfproximal"/>
+      <child link="rfmiddle"/>
+      <origin xyz="0.0 0.0 0.045" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="rfdistal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.015" rpy="0.0 0.008486512007798819 1.5707963267948966"/>
+         <mass value="0.01"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F1">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F1.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_rfdistal">
+         <origin xyz="0 0 0.012" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00705" length="0.024"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="RFJ0">
+      <parent link="rfmiddle"/>
+      <child link="rfdistal"/>
+      <origin xyz="0.0 0.0 0.025" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="lfmetacarpal">
+      <inertial>
+         <origin xyz="-0.014 0.001 0.014" rpy="-0.2201936594056939 0.038757914465076704 1.5480065383653392"/>
+         <mass value="0.075"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="lfmetacarpal">
+         <origin xyz="0 0 -0.028" rpy="0 -0.610865 3.1415926"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/lfmetacarpal.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_lfmetacarpal">
+         <origin xyz="0.0195 0 0" rpy="0 -0.610865 3.1415926"/>
+         <geometry>
+            <box size="0.019 0.0222 0.05"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="LFJ4">
+      <parent link="palm"/>
+      <child link="lfmetacarpal"/>
+      <origin xyz="-0.017 0.0 0.044" rpy="0 -0.610865 3.1415926"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="0.0" upper="0.785" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="lfknuckle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="2.0477583421747254 0.011366961427066169 0.007130225047531802"/>
+         <mass value="0.008"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="knuckle">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/knuckle.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+   </link>
+  
+   <joint type="revolute" name="LFJ3">
+      <parent link="lfmetacarpal"/>
+      <child link="lfknuckle"/>
+      <origin xyz="0.039 0.0 0.026" rpy="0 -0.610865 -3.1415926"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-0.349" upper="0.349" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="lfproximal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.023" rpy="0.0 0.01131529652408414 1.5707963267948966"/>
+         <mass value="0.014"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F3">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F3.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_lfproximal">
+         <origin xyz="0 0 0.0225" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.01" length="0.045"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="LFJ2">
+      <parent link="lfknuckle"/>
+      <child link="lfproximal"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="lfmiddle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.012" rpy="0.0 0.0 1.5707963267948963"/>
+         <mass value="0.012"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F2">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F2.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_lfmiddle">
+         <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00805" length="0.025"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="LFJ1">
+      <parent link="lfproximal"/>
+      <child link="lfmiddle"/>
+      <origin xyz="0.0 0.0 0.045" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="lfdistal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.015" rpy="0.0 0.008486512007798819 1.5707963267948966"/>
+         <mass value="0.01"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="F1">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/F1.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_lfdistal">
+         <origin xyz="0 0 0.012" rpy="0 0 0"/>
+         <geometry>
+            <cylinder radius="0.00705" length="0.024"/>
+         </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="LFJ0">
+      <parent link="lfmiddle"/>
+      <child link="lfdistal"/>
+      <origin xyz="0.0 0.0 0.025" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.571" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="thbase">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+         <mass value="0.01"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+   </link>
+   
+   <joint type="revolute" name="THJ4">
+      <parent link="palm"/>
+      <child link="thbase"/>
+      <origin xyz="0.034 -0.009 0.029" rpy="0.0 0.7850000000000001 0.0"/>
+      <axis xyz="0.0 0.0 -1.0"/>
+      <limit lower="-1.57" upper="1.57" effort="100" velocity="100"/>
+   </joint>
+   
+   <link name="thproximal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.017" rpy="0.000381693100196312 0.001962419550433303 0.3842054335057351"/>
+         <mass value="0.016"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="TH3_z">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/TH3_z.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_thproximal">
+          <origin xyz="0 0 0.019" rpy="0 0 0"/>
+          <geometry>
+              <cylinder radius="0.013" length="0.038"/>
+          </geometry>
+      </collision>
+   </link>
+
+   <joint type="revolute" name="THJ3">
+      <parent link="thbase"/>
+      <child link="thproximal"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="0.0" upper="1.57" effort="100" velocity="100"/>
+   </joint>
+
+   <link name="thhub">
+      <inertial>
+         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+         <mass value="0.002"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+   </link>
+
+   <joint type="revolute" name="THJ2">
+      <parent link="thproximal"/>
+      <child link="thhub"/>
+      <origin xyz="0.0 0.0 0.038" rpy="0.0 0.0 0.0"/>
+      <axis xyz="1.0 0.0 0.0"/>
+      <limit lower="-0.209" upper="0.209" effort="100" velocity="100"/>
+   </joint>
+  
+   <link name="thmiddle">
+      <inertial>
+         <origin xyz="0.0 0.0 0.016" rpy="-0.002042080886871354 -0.013993631107704463 0.006014270301537724"/>
+         <mass value="0.016"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="TH2_z">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/TH2_z.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_thmiddle">
+          <origin xyz="0 0 0.016" rpy="0 0 0"/>
+          <geometry>
+              <cylinder radius="0.011" length="0.032"/>
+          </geometry>
+      </collision>
+   </link>
+
+   <joint type="revolute" name="THJ1">
+      <parent link="thhub"/>
+      <child link="thmiddle"/>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-0.524" upper="0.524" effort="100" velocity="100"/>
+   </joint>
+
+   <link name="thdistal">
+      <inertial>
+         <origin xyz="0.0 0.0 0.016" rpy="-0.01050381536782631 -0.09396984019864618 0.01050381536782631"/>
+         <mass value="0.016"/>
+         <inertia ixx="1e-05" iyy="1e-05" izz="1e-05" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual name="TH1_z">
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <geometry>
+            <mesh filename="/home/user/DexGraspSyn/shadow_hand/shadow_hand/TH1_z.stl" scale="0.001 0.001 0.001"/>
+         </geometry>
+         <material name="white"/>
+      </visual>
+      <collision name="C_thdistal">
+          <origin xyz="0 0 0.013" rpy="0 0 0"/>
+          <geometry>
+              <cylinder radius="0.00918" length="0.026"/>
+          </geometry>
+      </collision>
+   </link>
+   
+   <joint type="revolute" name="THJ0">
+      <parent link="thmiddle"/>
+      <child link="thdistal"/>
+      <origin xyz="0.0 0.0 0.032" rpy="0.0 0.0 0.0"/>
+      <axis xyz="0.0 1.0 0.0"/>
+      <limit lower="-1.571" upper="0.0" effort="100" velocity="100"/>
+   </joint>
+   
+   <material name="white">
+      <color rgba="1 1 1 1"/>
+   </material>
+</robot>

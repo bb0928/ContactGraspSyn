@@ -147,7 +147,7 @@ class HandOptimizer(nn.Module):
         if self.use_quat:
             self.init_wrist_rot = hand_params['wrist_quat']
         else:
-            self.init_wrist_rot = hand_params['wrist_rot6d']
+            self.init_wrist_rot = hand_params['wrist_rot6d']    # 用的这个
 
         self.init_wrist_tsl = hand_params['wrist_tsl']
         self.init_joint_angles = hand_params['joint_angles']
@@ -345,17 +345,65 @@ class HandOptimizer(nn.Module):
         loss_close = thumb_index * 500
         return loss_close
 
+    #新加的embedding的函数
+
+    def compute_embedding_loss(self, pred):
+        embedding_shadow = torch.from_numpy(np.load("./embed_point_shadow.npy")).unsqueeze(0).repeat(self.bs,1,1).to(self.device)
+        # contact_embedding = torch.from_numpy(np.load("./contact_feature_or_tsne_obj.npy")).repeat(self.bs,1,1).to(self.device)  # ycb的罐头的embeding
+        contact_embedding = torch.from_numpy(np.load("/home/user/pyFM/examples/data/teapot_embed.npy")).repeat(self.bs,1,1).to(self.device) 
+        # obj_contact_point_idx = np.load("./indices_grater_than_0_8.npy") # 这个也要改
+        obj_contact_point_idx = np.load("/home/user/DexGraspSyn/indices_grater_than_0_8.npy")
+        #print(obj_contact_point_idx.shape)
+        shadow_touch_area_embedding=contact_embedding[0,obj_contact_point_idx,:].squeeze(0) #手上需要用的那一部分embedding去触碰物体
+        mesh_vertices = trimesh.load('./test_data/grab_contact_meshes/mesh1teapot_frame_0.off',process=False) # 这个也要改！！！！！！！
+        mesh_vertices = np.array(mesh_vertices.vertices)
+        #print("shadow_touch_area_embedding.shape",shadow_touch_area_embedding.shape) #torch.Size([1029, 3])
+        #print("len(obj_contact_point_idx)",len(obj_contact_point_idx)) # 1029
+
+
+        # shadow_hand_index=[]
+        # obj_index=[]
+        # for i in range(self.bs):
+        obj_index_batch = [] #这两个数组应该是一个不变的，找到了相同的embedding对应的序号
+        shadow_hand_index_batch=[]
+        for j in range(shadow_touch_area_embedding.size(dim=0)):
+            #print(shadow_touch_area_embedding[j,:].squeeze(0))
+            indices = torch.nonzero((embedding_shadow[0,:,:].squeeze(0) == shadow_touch_area_embedding[j,:].squeeze(0)).all(dim=1),as_tuple=True)[0]
+            #print("indices",indices)
+            if indices.size(dim=0) > 1:
+                random_index = torch.randint(0, len(indices), (1,)).item()
+                index=indices[random_index].item()
+                shadow_hand_index_batch.append(index)
+                obj_index_batch.append(obj_contact_point_idx[j])
+            elif indices.size(dim=0) == 1:
+                index = indices[0].item()
+                shadow_hand_index_batch.append(index)
+                obj_index_batch.append(obj_contact_point_idx[j])
+            else:
+                continue
+        shadow_embedding_point=pred['vertices'][:,shadow_hand_index_batch,:]
+        #print(shadow_embedding_point.device)
+
+        obj_embedding_point=torch.from_numpy(mesh_vertices).unsqueeze(0).repeat(self.bs,1,1)[:,obj_index_batch,:].to(self.device)
+        print(obj_embedding_point.device)
+        embedding_loss= ((shadow_embedding_point - obj_embedding_point) ** 2).mean(dim=(1, 2))*500
+        print("embedding_loss.shape",embedding_loss.shape)
+        print('embedding_loss',embedding_loss)
+        # print(embedding_loss.requires_grad)
+
+        return embedding_loss
 
     def forward(self, iteration=0, obstacle=None, debug=False):
         """
         Implement function to be optimised.
+        这里的pose是从init pose的变量中取出计算的
         """
         pose = self.pose.clone()
         if self.use_quat:
             quat = F.normalize(self.wrist_rot)
             pose[:, :3, :3] = roma.unitquat_to_rotmat(quat)
-        else:   # 执行这个
-            pose[:, :3, :3] = robust_compute_rotation_matrix_from_ortho6d(self.wrist_rot)
+        else:   # 执行这个######################################################################################
+            pose[:, :3, :3] = robust_compute_rotation_matrix_from_ortho6d(self.wrist_rot)   
 
         pose[:, :3, 3] = self.wrist_tsl
         theta = self.decode_theta()
@@ -383,8 +431,8 @@ class HandOptimizer(nn.Module):
             pred['normals'], self.object_params['normals'].repeat(self.bs, 1, 1),
         )
 
-        o2h_dist_neg = torch.logical_and(o2h_signed.abs() < 0.005, o2h_signed < 0.0) # 计算手部与物体之间距离小于阈值且为负数的距离
-        h2o_dist_neg = torch.logical_and(h2o_signed.abs() < 0.005, h2o_signed < 0.0)
+        o2h_dist_neg = torch.logical_and(o2h_signed.abs() < 0.005, o2h_signed < 0.0) # 计算手部与物体之间距离小于阈值且为负数的距离, 用True/False表示
+        h2o_dist_neg = torch.logical_and(h2o_signed.abs() < 0.005, h2o_signed < 0.0) 
 
         loss_collision_h2o = torch.sum(h2o_signed * h2o_dist_neg, dim=1)
         loss_collision_o2h = torch.sum(o2h_signed * o2h_dist_neg, dim=1)
@@ -456,8 +504,10 @@ class HandOptimizer(nn.Module):
         else:
             parallel_contact_loss = 0.0
 
+        embedding_loss = self.compute_embedding_loss(pred)
+
         total_cost = (hand_obj_collision + hand_self_collision + E_dis + E_fc + contact_align_loss + hand_rot_loss
-                      + loss_collision_obstacle + angle_loss + parallel_contact_loss)
+                      + loss_collision_obstacle + angle_loss + parallel_contact_loss + 150*embedding_loss) # 原先有150倍的embedding loss
 
         return total_cost
 
@@ -523,7 +573,7 @@ class HandOptimizer(nn.Module):
 
         joint_angles = self.best_joint_angles.cpu().numpy()
 
-        grasp_dict = {'wrist_quat': wrist_quat_wxyz.cpu().numpy(),
+        grasp_dict = {'wrist_quat': wrist_quat_wxyz.cpu().numpy(),  # quaternion format WXYZ！！！！！！！！！！
                       'wrist_tsl': wrist_tsl.cpu().numpy(),
                       'joint_angles': joint_angles,
                       "obj_scale": self.object_params['scale'],

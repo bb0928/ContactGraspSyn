@@ -28,7 +28,10 @@ def get_stable_pose(mesh):
     return poses
 
 
-def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, watertight_process=True, **kwargs):
+def my_get_object_params():
+    return
+def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, watertight_process=False, **kwargs):
+# def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, watertight_process=True, **kwargs): # 保护
     mesh = trimesh.load(mesh_filepath, force='mesh', process=False, skip_material=True)
 
     # scale the object mesh
@@ -38,10 +41,10 @@ def get_object_params(mesh_filepath, vox_size=0.006, scale=1.0, vis=False, water
     bbmin = mesh.vertices.min(0)
     bbmax = mesh.vertices.max(0)
     center = (bbmin + bbmax) * 0.5
-    mesh.vertices -= center  # center
+    #mesh.vertices -= center  # center 1.6 16：28 xlj注释掉
     mesh_orin = mesh.copy()
     if watertight_process:
-        if mesh.is_watertight:
+        if mesh.is_watertight:  # 大部分时候都是true
             pass
         else:
             pitch = mesh.extents.max() / 128  # size

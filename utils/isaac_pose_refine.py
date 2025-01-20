@@ -36,7 +36,7 @@ class IsaacValidator:
         self.obj_handles = []
         self.hand_rigid_body_sets = []
         self.obj_rigid_body_sets = []
-        self.num_hand_dofs = 16
+        self.num_hand_dofs = 22
         if joint_names is None:
             self.joint_names = ['1','0','2','3','5','4','6','7','9','8','10','11','12','13','14','15']
         else:
@@ -50,8 +50,9 @@ class IsaacValidator:
         # set common parameters
         self.sim_params.dt = 1 / 60
         self.sim_params.substeps = 2
-        self.sim_params.up_axis = gymapi.UP_AXIS_Z
-        self.sim_params.gravity = gymapi.Vec3(0.0, 0, 0)
+        self.sim_params.up_axis = gymapi.UP_AXIS_Z  # z-up
+        # self.sim_params.gravity = gymapi.Vec3(0.0, 0, 0) # 保护原代码
+        self.sim_params.gravity = gymapi.Vec3(0.0, 0, -0.1)
         self.sim_params.num_client_threads = 8
 
         # set PhysX-specific parameters
@@ -74,7 +75,7 @@ class IsaacValidator:
 
         plane_params = gymapi.PlaneParams()
         plane_params.distance = 1.0
-        plane_params.normal = gymapi.Vec3(0.0, 0.0, 1.0)
+        plane_params.normal = gymapi.Vec3(0.0, 0.0, 1.0) # z-up
         gym.add_ground(self.sim, plane_params)
 
         # set viewer
@@ -89,8 +90,9 @@ class IsaacValidator:
 
     def _load_hand_asset(self, hand_asset_root, hand_asset_file):
         hand_asset_options = gymapi.AssetOptions()
-        hand_asset_options.disable_gravity = True
-        hand_asset_options.fix_base_link = True
+        hand_asset_options.disable_gravity = True   # 保护原代码
+        hand_asset_options.disable_gravity = False
+        hand_asset_options.fix_base_link = True # True
         hand_asset_options.collapse_fixed_joints = True
         # # Convex decomposition
         hand_asset_options.vhacd_enabled = False
@@ -103,15 +105,16 @@ class IsaacValidator:
         if self.physics_engine == gymapi.SIM_PHYSX:
             hand_asset_options.use_physx_armature = True
         hand_asset_options.default_dof_drive_mode = gymapi.DOF_MODE_POS
-
         self.hand_asset = gym.load_asset(self.sim, hand_asset_root, hand_asset_file, hand_asset_options)
 
     def _load_obj_asset(self, obj_asset_root, obj_asset_file):
         obj_asset_options = gymapi.AssetOptions()
-        obj_asset_options.fix_base_link = True
+        obj_asset_options.fix_base_link = False # True，使能obj的物理属性，可以做一个桌面防止掉地上，最好是isaacgym内置的1m桌面，否则很麻烦
         obj_asset_options.override_com = True
+        obj_asset_options.disable_gravity = False   # added by xlj
         obj_asset_options.override_inertia = True
-        obj_asset_options.density = 500
+        obj_asset_options.density = 5
+        obj_asset_options.vhacd_enabled = False  # xlj 添加1.9
 
         self.obj_asset = gym.load_asset(self.sim, obj_asset_root, obj_asset_file, obj_asset_options)
 
@@ -122,8 +125,8 @@ class IsaacValidator:
         env_upper = gymapi.Vec3(spacing, spacing, spacing)
 
         # create robot asset
-        self._load_hand_asset("/home/v-wewei/repository/dex-urdf/robots/hands/leap_hand",
-                          "leap_hand_right_no_base_transform.urdf")
+        self._load_hand_asset("/home/user/DexGraspSyn/hand_layers/shadow_hand_layer/assets",
+                          "shadow_hand_right.urdf")
 
         self.num_hand_bodies = gym.get_asset_rigid_body_count(self.hand_asset)
         self.num_hand_shapes = gym.get_asset_rigid_shape_count(self.hand_asset)
@@ -138,7 +141,7 @@ class IsaacValidator:
         # print(f"Robot num rigid bodies: {self.num_hand_bodies}")
         # print(f"Robot rigid bodies: {hand_rigid_body_names}")
 
-        self._load_obj_asset('/home/v-wewei/code/DexGraspSyn/test_data/xmls/obj_xml_static', 'tmpfvthwtwg.xml')
+        self._load_obj_asset('/home/user/DexGraspSyn/test_data/xmls', 'mug.xml')
         self.num_obj_bodies = gym.get_asset_rigid_body_count(self.obj_asset)
         self.num_obj_shapes = gym.get_asset_rigid_shape_count(self.obj_asset)
 
@@ -153,13 +156,13 @@ class IsaacValidator:
             hand_pose.r = gymapi.Quat(*hand_rotation[i, 1:], hand_rotation[i, 0])
             hand_pose.p = gymapi.Vec3(*hand_translation[i])
             gym.begin_aggregate(env_ptr, max_agg_bodies, max_agg_shapes, True)
-            hand_actor_handle = gym.create_actor(env_ptr, self.hand_asset, hand_pose, "leaphand", 0, -1)
+            hand_actor_handle = gym.create_actor(env_ptr, self.hand_asset, hand_pose, "shadowhand", 0, -1)
 
             self.hand_handles.append(hand_actor_handle)
             hand_props = gym.get_actor_dof_properties(env_ptr, hand_actor_handle)
             hand_props["driveMode"].fill(gymapi.DOF_MODE_POS)
-            hand_props["stiffness"].fill(3.0)
-            hand_props["damping"].fill(0.1)
+            hand_props["stiffness"].fill(1000.0) # 3.0
+            hand_props["damping"].fill(200.0) # 0.1
             gym.set_actor_dof_properties(env_ptr, hand_actor_handle, hand_props)
             cur_dof_states = gym.get_actor_dof_states(env_ptr, hand_actor_handle, gymapi.STATE_ALL)
             tar_dof_states = cur_dof_states.copy()
@@ -198,7 +201,7 @@ class IsaacValidator:
     def run_sim(self):
 
         gym.prepare_sim(self.sim)
-        for _ in range(self.sim_step):
+        for _ in range(self.sim_step * 100):
             # step the physics
             gym.simulate(self.sim)
             gym.fetch_results(self.sim, True)
@@ -236,18 +239,23 @@ class IsaacValidator:
 
 
 if __name__ == "__main__":
+    """
+    shadow手乱动,object和shadow不在一个坐标系下，离得很远
+    """
     import numpy as np
     import pytorch_kinematics as pk
-    urdf_path = "/home/user/DexGraspSyn/hand_layers/leap_hand_layer/assets/leap_hand_right.urdf"
+    # urdf_path = "/home/user/DexGraspSyn/hand_layers/leap_hand_layer/assets/leap_hand_right.urdf"
+    urdf_path = "/home/user/DexGraspSyn/hand_layers/shadow_hand_layer/assets/shadow_hand_right.urdf"
     chain = pk.build_chain_from_urdf(open(urdf_path).read())
     joint_names = chain.get_joint_parameter_names()
-    # grasp = np.load('../test_data/grasp_npy/tmpfvthwtwg.npy', allow_pickle=True).item()
+    grasp = np.load('./test_data/grasp_npy/tmpfvthwtwg.npy', allow_pickle=True).item()
 
-    validator = IsaacValidator(mode='direct', joint_names=joint_names, sim_step=120)
+    # validator = IsaacValidator(mode='direct', joint_names=joint_names, sim_step=120)    # 保护原代码
+    validator = IsaacValidator(mode='gui', joint_names=joint_names, sim_step=120)
     # validator.create_envs(hand_rotation=grasp['wrist_quat'], hand_translation=grasp['wrist_tsl'],
     #                       hand_qpos=grasp['joint_angles'], obj_scale=1.0, target_qpos=grasp['joint_angles'])
-    validator.create_envs(hand_rotation=np.zeros(4), hand_translation=np.zeros(3),
-                          hand_qpos=np.zeros(22), obj_scale=1.0, target_qpos=np.zeros(22))
+    validator.create_envs(hand_rotation=np.zeros((1,4)), hand_translation=np.zeros((1,3)),  # added by xlj
+                          hand_qpos=np.zeros((1,22)), obj_scale=1.0, target_qpos=np.zeros((1,22)))
     joint_angles = validator.run_sim()
     difference = np.abs(grasp['joint_angles'] - joint_angles)
     idx = np.argmax(difference)
